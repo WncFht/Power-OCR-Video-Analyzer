@@ -1,0 +1,16 @@
+{
+    "scale_factor": 3.046511627906977,
+    "red_hue_low1": 0,
+    "red_hue_high1": 10,
+    "red_hue_low2": 160,
+    "red_hue_high2": 179,
+    "red_sat_low": 100,
+    "red_sat_high": 255,
+    "red_val_low": 100,
+    "red_val_high": 255,
+    "white_sat_high": 110,
+    "white_val_low": 180,
+    "split_ratio": 0.27674418604651163,
+    "upper_red_val_offset": -20,
+    "lower_red_sat_offset": 25
+}
