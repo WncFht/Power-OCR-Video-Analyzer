@@ -4,6 +4,8 @@
 
 ![](https://raw.githubusercontent.com/WncFht/picture/main/picture/20241106214240.png)
 
+![](https://raw.githubusercontent.com/WncFht/picture/main/picture/20a31557ec628690503c4ef640037c3.png)
+
 ## 目录
 
 - [功能特点](#功能特点)
