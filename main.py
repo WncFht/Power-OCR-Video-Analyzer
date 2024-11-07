@@ -777,7 +777,7 @@ class PowerOCRApp:
             self.cap.release()
 
     def open_video(self):
-        """Open video file and start with ROI selection"""
+        """Open video file and optionally start ROI selection"""
         file_path = filedialog.askopenfilename(
             filetypes=[("Video files", "*.avi *.mp4 *.mkv *.mov")]
         )
@@ -797,31 +797,74 @@ class PowerOCRApp:
                 self.time_series_data = []
                 self.is_paused = True
                 
-                # Read first frame for ROI selection
+                # Read first frame
                 ret, frame = self.cap.read()
                 if not ret:
                     raise ValueError("Cannot read video frame")
                 
                 self.current_frame = frame
                 
-                # Select ROI
-                cv2.namedWindow("Select ROI - Press SPACE when done")
-                self.roi = cv2.selectROI("Select ROI - Press SPACE when done", 
-                                    frame, fromCenter=False, showCrosshair=True)
-                cv2.destroyWindow("Select ROI - Press SPACE when done")
+                # Ask user whether to use ROI
+                use_roi = messagebox.askyesno("ROI Selection", 
+                    "Would you like to select a Region of Interest (ROI)?\n\n"
+                    "Yes - Select a specific area to process\n"
+                    "No - Process the entire frame")
                 
-                if self.roi[2] > 0 and self.roi[3] > 0:
-                    # Create video control panel
-                    self.create_video_control_panel()
-                    # Start video processing
-                    self.is_paused = False
-                    self.process_video_frame()
+                if use_roi:
+                    # Select ROI
+                    cv2.namedWindow("Select ROI - Press SPACE when done")
+                    self.roi = cv2.selectROI("Select ROI - Press SPACE when done", 
+                                        frame, fromCenter=False, showCrosshair=True)
+                    cv2.destroyWindow("Select ROI - Press SPACE when done")
+                    
+                    if self.roi[2] <= 0 or self.roi[3] <= 0:
+                        messagebox.showerror("Error", "Invalid ROI selected")
+                        self.cleanup()
+                        return
                 else:
-                    messagebox.showerror("Error", "Invalid ROI selected")
-                    self.cleanup()
+                    # Use full frame
+                    height, width = frame.shape[:2]
+                    self.roi = (0, 0, width, height)
+                
+                # Create video control panel
+                self.create_video_control_panel()
+                # Start video processing
+                self.is_paused = False
+                self.process_video_frame()
                     
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to open video: {str(e)}")
+    
+    def select_new_roi(self):
+        """Select new ROI while maintaining video position"""
+        if self.current_frame is not None:
+            was_paused = self.is_paused
+            self.is_paused = True
+            
+            # Ask user whether to use ROI
+            use_roi = messagebox.askyesno("ROI Selection", 
+                "Would you like to select a Region of Interest (ROI)?\n\n"
+                "Yes - Select a specific area to process\n"
+                "No - Process the entire frame")
+            
+            if use_roi:
+                cv2.namedWindow("Select ROI - Press SPACE when done")
+                self.roi = cv2.selectROI("Select ROI - Press SPACE when done", 
+                                        self.current_frame, fromCenter=False, showCrosshair=True)
+                cv2.destroyWindow("Select ROI - Press SPACE when done")
+                
+                if self.roi[2] <= 0 or self.roi[3] <= 0:
+                    messagebox.showwarning("Warning", "Invalid ROI selected, keeping previous ROI")
+                    return
+            else:
+                # Use full frame
+                height, width = self.current_frame.shape[:2]
+                self.roi = (0, 0, width, height)
+            
+            self.process_image()
+            self.is_paused = was_paused
+            if not self.is_paused:
+                self.process_video_frame()
 
     def create_video_control_panel(self):
         """Create enhanced video control panel"""
